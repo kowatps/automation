@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="Excel VBA・スプレッドシートの自動化、自作関数、業務アプリ開発、動かないマクロの修復。物流現場の知見を持つコーワ株式会社TPS部が、毎日の定型業務を数千円から自動化します。">
+<meta property="og:title" content="TPS部 業務自動化サービス｜コーワ株式会社">
+<meta property="og:type" content="website">
+<title>TPS部 業務自動化サービス</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=BIZ+UDPGothic:wght@400;700&family=JetBrains+Mono:wght@500&family=Zen+Kaku+Gothic+New:wght@700;900&display=swap">
+<style>
+/* Layout: 表計算シートの「セル・数式バー・ボタン」を視覚言語に。白い紙面＋段ボール色のアクセント、縦一列の読み物LP */
+:root{
+  --bg:#F5F6F3;          /* やや緑寄りのオフホワイト */
+  --surface:#FFFFFF;
+  --ink:#18242B;
+  --muted:#56636B;
+  --line:#D6DBD6;
+  --grid:#E4E8E3;
+  --accent:#126B4E;      /* シートの緑 */
+  --accent-ink:#FFFFFF;
+  --kraft:#B9772F;       /* 段ボールの色 */
+  --kraft-soft:#F3E6D4;
+  --band:#18242B;
+  --band-ink:#EEF2EE;
+  --shadow:0 1px 2px rgba(24,36,43,.06),0 8px 24px rgba(24,36,43,.07);
+  --f-display:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",sans-serif;
+  --f-body:"BIZ UDPGothic","Hiragino Sans","Yu Gothic","Meiryo",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#121A1E;--surface:#1A2429;--ink:#E7ECE8;--muted:#A3B0AE;--line:#2E3B40;--grid:#253136;
+  --accent:#3FB088;--accent-ink:#0D1A15;--kraft:#D9A066;--kraft-soft:#2F2619;--band:#0B1114;--band-ink:#E7ECE8;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.3);color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#121A1E;--surface:#1A2429;--ink:#E7ECE8;--muted:#A3B0AE;--line:#2E3B40;--grid:#253136;
+  --accent:#3FB088;--accent-ink:#0D1A15;--kraft:#D9A066;--kraft-soft:#2F2619;--band:#0B1114;--band-ink:#E7ECE8;
+  --shadow:0 1px 2px rgba(0,0,0,.3),0 8px 24px rgba(0,0,0,.3);color-scheme:dark}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.85;-webkit-font-smoothing:antialiased}
+img{max-width:100%;height:auto;display:block}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--kraft);outline-offset:3px;border-radius:4px}
+.wrap{max-width:1080px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+section{padding-block:72px}
+h1,h2,h3{font-family:var(--f-display);line-height:1.4;text-wrap:balance;margin:0}
+h2{font-size:clamp(1.5rem,1.1rem + 1.6vw,2.1rem);font-weight:900}
+h3{font-size:1.15rem;font-weight:700}
+.hero h1,.svc h3{word-break:keep-all;overflow-wrap:anywhere}
+p{margin:0}
+.eyebrow{font-family:var(--f-mono);font-size:.78rem;letter-spacing:.08em;color:var(--kraft);display:flex;align-items:center;gap:8px;margin-bottom:12px}
+.eyebrow::before{content:"";width:18px;height:2px;background:var(--kraft)}
+.lead{color:var(--muted);max-width:40em;margin-top:14px}
+.sec-head{margin-bottom:40px}
+
+/* header */
+.site-head{border-bottom:1px solid var(--line);background:var(--surface)}
+.site-head .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-block:14px;flex-wrap:wrap}
+.brand{display:flex;flex-direction:column;line-height:1.3;text-decoration:none;color:var(--ink)}
+.brand small{font-size:.75rem;color:var(--muted)}
+.brand strong{font-family:var(--f-display);font-size:1.05rem}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;font-family:var(--f-display);font-weight:700;text-decoration:none;border-radius:6px;padding:12px 22px;border:2px solid var(--accent);transition:transform .15s,box-shadow .15s}
+.btn-primary{background:var(--accent);color:var(--accent-ink)}
+.btn-ghost{background:transparent;color:var(--accent)}
+.btn:hover{transform:translateY(-1px);box-shadow:var(--shadow)}
+.btn-sm{padding:8px 16px;font-size:.9rem}
+
+/* hero */
+.hero{padding-block:64px 72px}
+.hero .wrap{display:grid;grid-template-columns:1.05fr 1fr;gap:48px;align-items:center}
+.hero h1{font-size:clamp(1.8rem,1.2rem + 2.4vw,2.6rem);font-weight:900;letter-spacing:.01em}
+.hero h1 em{font-style:normal;background:linear-gradient(transparent 62%,var(--kraft-soft) 62%)}
+.hero .sub{margin-top:20px;color:var(--muted);max-width:34em}
+.hero .ctas{display:flex;gap:12px;flex-wrap:wrap;margin-top:28px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:28px;padding:0;list-style:none}
+.chips li{font-size:.82rem;border:1px solid var(--line);background:var(--surface);border-radius:999px;padding:4px 12px}
+.chips li b{color:var(--accent)}
+
+/* sheet mock */
+.sheet{background:var(--surface);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);overflow:hidden;min-width:0}
+.sheet-title{display:flex;align-items:center;gap:8px;padding:8px 12px;background:var(--accent);color:var(--accent-ink);font-family:var(--f-mono);font-size:.78rem}
+.sheet-title i{width:9px;height:9px;border-radius:50%;background:currentColor;opacity:.5}
+.fx{display:flex;align-items:center;gap:10px;padding:8px 12px;border-bottom:1px solid var(--line);font-family:var(--f-mono);font-size:.82rem}
+.fx span:first-child{color:var(--muted);font-style:italic;border-right:1px solid var(--line);padding-right:10px}
+.fx b{color:var(--accent);font-weight:500}
+.grid{display:grid;grid-template-columns:28px repeat(4,1fr);font-size:.78rem;font-variant-numeric:tabular-nums}
+.grid div{border-right:1px solid var(--grid);border-bottom:1px solid var(--grid);padding:5px 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.grid .h{background:var(--bg);color:var(--muted);text-align:center;font-family:var(--f-mono)}
+.grid .th{font-weight:700}
+.sheet-btns{padding:16px;border-top:1px solid var(--line);background:var(--bg)}
+.sheet-btns img{border:1px solid var(--line);border-radius:4px;margin-inline:auto}
+.sheet-btns p{font-size:.78rem;color:var(--muted);text-align:center;margin-top:8px}
+
+/* video */
+.video{background:var(--band);color:var(--band-ink)}
+.video .wrap{display:grid;grid-template-columns:1fr 1.4fr;gap:40px;align-items:center}
+.video .eyebrow{color:var(--kraft)}
+.video p{color:var(--band-ink);opacity:.82;margin-top:14px}
+.video-frame{position:relative;aspect-ratio:16/9;max-width:100%;border-radius:8px;overflow:hidden;background:#000;min-width:0}
+.video-frame iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.hero-video{margin:0;min-width:0}
+.hero-video figcaption{font-size:.82rem;color:var(--muted);margin-top:10px}
+.video-link{background-color:var(--band);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;aspect-ratio:16/9;max-width:100%;border-radius:8px;border:1px solid rgba(255,255,255,.18);text-decoration:none;color:var(--band-ink);background:repeating-linear-gradient(90deg,transparent 0 59px,rgba(255,255,255,.05) 59px 60px),repeating-linear-gradient(0deg,transparent 0 23px,rgba(255,255,255,.05) 23px 24px),var(--band)}
+.video-link .play{width:68px;height:48px;border-radius:12px;background:#E33;display:grid;place-items:center}
+.video-link .play::after{content:"";border-left:18px solid #fff;border-top:11px solid transparent;border-bottom:11px solid transparent;margin-left:4px}
+
+/* pains */
+.pains{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;list-style:none;padding:0;margin:0}
+.pains li{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:18px 20px;position:relative}
+.pains li::before{content:"…";position:absolute;top:-14px;left:18px;background:var(--kraft);color:#fff;font-weight:700;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;line-height:1}
+.pains-answer{margin-top:32px;font-family:var(--f-display);font-weight:700;font-size:1.2rem}
+.pains-answer span{color:var(--accent)}
+
+/* services */
+.services{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:20px}
+.svc{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:24px;display:flex;flex-direction:column;gap:10px}
+.svc .tag{font-family:var(--f-mono);font-size:.72rem;color:var(--accent);border:1px solid var(--accent);border-radius:4px;padding:1px 8px;align-self:flex-start}
+.svc p{color:var(--muted);font-size:.95rem}
+
+/* flow of shipping */
+.flow{counter-reset:step;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:0;list-style:none;padding:0;margin:0;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface)}
+.flow li{counter-increment:step;padding:20px 18px;border-right:1px solid var(--line);position:relative;min-width:0}
+.flow li:last-child{border-right:0}
+.flow li::before{content:counter(step);font-family:var(--f-mono);color:var(--kraft);font-size:.8rem;display:block;margin-bottom:6px}
+.flow b{font-family:var(--f-display);display:block;margin-bottom:6px}
+.flow p{font-size:.86rem;color:var(--muted);line-height:1.7}
+.extra{margin-top:28px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px}
+.extra div{border-left:3px solid var(--kraft);padding:4px 0 4px 16px}
+.extra b{font-family:var(--f-display)}
+.extra p{color:var(--muted);font-size:.92rem}
+
+/* cases */
+.case{display:grid;grid-template-columns:1.35fr 1fr;gap:40px;align-items:start}
+.case + .case{margin-top:72px}
+.case figure{margin:0;min-width:0}
+.shot{position:relative;border:1px solid var(--line);border-radius:8px;overflow:hidden;box-shadow:var(--shadow);background:var(--surface)}
+.pin{position:absolute;transform:translate(-50%,-50%);width:28px;height:28px;border-radius:50%;background:var(--kraft);color:#fff;font-family:var(--f-mono);font-size:.85rem;display:grid;place-items:center;box-shadow:0 0 0 3px rgba(255,255,255,.9),0 2px 6px rgba(0,0,0,.25)}
+.case figcaption{font-size:.8rem;color:var(--muted);margin-top:8px}
+.case .label{font-family:var(--f-mono);font-size:.75rem;color:var(--accent)}
+.case h3{font-size:1.35rem;margin:6px 0 12px}
+.notes{list-style:none;padding:0;margin:20px 0 0;display:grid;gap:12px}
+.notes li{display:grid;grid-template-columns:28px 1fr;gap:12px;align-items:start}
+.notes li span{width:28px;height:28px;border-radius:50%;background:var(--kraft);color:#fff;font-family:var(--f-mono);font-size:.85rem;display:grid;place-items:center}
+.notes b{display:block;font-family:var(--f-display)}
+.notes small{color:var(--muted);font-size:.88rem;line-height:1.6;display:block}
+
+/* small start */
+.small{background:var(--kraft-soft)}
+.small h2 small{display:block;font-size:1rem;font-family:var(--f-body);font-weight:400;color:var(--muted);margin-top:10px}
+.points{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:20px}
+.point{background:var(--surface);border-radius:8px;padding:24px}
+.point .big{font-family:var(--f-display);font-weight:900;color:var(--kraft);font-size:1.6rem;line-height:1.2;display:block;margin-bottom:8px}
+.point p{color:var(--muted);font-size:.93rem;margin-top:8px}
+
+/* reasons */
+.reasons{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:0;border-top:1px solid var(--line)}
+.reasons div{padding:22px 4px;border-bottom:1px solid var(--line);display:grid;grid-template-columns:auto 1fr;gap:6px 16px}
+.reasons .mk{grid-row:span 2;font-family:var(--f-mono);color:var(--accent);font-size:.8rem;border:1px solid var(--accent);border-radius:4px;padding:2px 6px;height:max-content}
+.reasons p{color:var(--muted);font-size:.93rem}
+
+/* steps */
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:16px;list-style:none;padding:0;margin:0;counter-reset:s}
+.steps li{counter-increment:s;background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:22px}
+.steps li::before{content:"STEP " counter(s);font-family:var(--f-mono);font-size:.75rem;color:var(--kraft);display:block;margin-bottom:6px}
+.steps p{color:var(--muted);font-size:.92rem;margin-top:6px}
+
+/* faq */
+.faq{display:grid;gap:12px;max-width:820px}
+.faq details{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:0 20px}
+.faq summary{cursor:pointer;font-family:var(--f-display);font-weight:700;padding:16px 0;list-style:none;display:flex;gap:12px}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::before{content:"Q";font-family:var(--f-mono);color:var(--accent)}
+.faq details p{padding:0 0 18px 26px;color:var(--muted)}
+
+/* function */
+.fn .wrap{display:grid;grid-template-columns:1.1fr 1fr;gap:48px;align-items:start}
+.fn .sec-head{margin-bottom:24px}
+.grid.g3{grid-template-columns:28px 2.2fr .8fr 1fr}
+.grid .num{text-align:right}
+.grid .sel{outline:2px solid var(--accent);outline-offset:-2px}
+.grid .err{color:var(--kraft);font-weight:700}
+.fn-note{font-size:.78rem;color:var(--muted);margin-top:8px}
+.how{list-style:none;padding:0;margin:24px 0 0;display:grid;gap:10px;counter-reset:h}
+.how li{counter-increment:h;display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:baseline}
+.how li::before{content:counter(h);font-family:var(--f-mono);color:var(--kraft);font-size:.85rem}
+.how small{color:var(--muted);display:block;font-size:.88rem}
+.plans{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-top:28px}
+.plan{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:20px;display:flex;flex-direction:column;gap:6px}
+.plan .price{font-family:var(--f-display);font-weight:900;font-size:1.9rem;color:var(--accent);line-height:1.2}
+.plan .price small{font-size:.9rem;font-weight:700;margin-left:2px}
+.plan p{color:var(--muted);font-size:.9rem}
+.plan h3{font-size:1rem}
+.disclaimer{margin-top:28px;max-width:820px;border:1px solid var(--line);border-radius:8px;padding:16px 20px;font-size:.86rem;color:var(--muted);background:var(--surface)}
+.disclaimer b{color:var(--ink);display:block;margin-bottom:4px}
+
+/* cta */
+.cta{background:var(--band);color:var(--band-ink);text-align:left}
+.cta .wrap{display:grid;grid-template-columns:1.3fr 1fr;gap:40px;align-items:center}
+.cta h2{color:var(--band-ink)}
+.cta p{opacity:.82;margin-top:14px}
+.contact{background:var(--surface);color:var(--ink);border-radius:8px;padding:24px;display:grid;gap:14px}
+.contact .tel{font-family:var(--f-mono);font-size:1.5rem;user-select:all}
+.contact small{color:var(--muted);display:block;line-height:1.6}
+.contact .btn{width:100%}
+
+footer{padding-block:28px;font-size:.82rem;color:var(--muted)}
+footer .wrap{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px}
+
+@media (max-width:820px){
+  .fn .wrap,.hero .wrap,.video .wrap,.case,.cta .wrap{grid-template-columns:1fr}
+  .flow li{border-right:0;border-bottom:1px solid var(--line)}
+  .flow li:last-child{border-bottom:0}
+  section{padding-block:56px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+
+<header class="site-head">
+  <div class="wrap">
+    <a class="brand" href="https://www.j-kowa.co.jp/tps/"><small>コーワ株式会社</small><strong>トータルパッケージソリューション部</strong></a>
+    <a class="btn btn-primary btn-sm" href="#contact">無料で相談する</a>
+  </div>
+</header>
+
+<main>
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <p class="eyebrow">Excel VBA ／ スプレッドシート ／ 業務アプリ</p>
+      <h1>その<wbr><em>「毎日の手作業」</em>、<wbr>1クリックで<wbr>終わらせます。</h1>
+      <p class="sub">段ボールメーカーの物流部門として長年培った現場の知見と、Microsoft Excel VBAエキスパートの技術で、出荷・在庫・データ処理の「決まった作業」を自動化します。</p>
+      <div class="ctas">
+        <a class="btn btn-primary" href="#contact">まずは相談してみる</a>
+        <a class="btn btn-ghost" href="#works">実績を見る</a>
+      </div>
+      <ul class="chips">
+        <li><b>VBAエキスパート</b> 資格者が複数在籍</li>
+        <li>物流現場で<b>毎日稼働</b>中</li>
+        <li>費用は<b>数千円</b>から</li>
+      </ul>
+    </div>
+    <figure class="hero-video">
+      <div class="video-frame"><iframe src="https://www.youtube-nocookie.com/embed/dFqb89zyRj8" title="エクセルVBAの紹介（自動化ツール）" loading="lazy" allow="accelerometer; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe></div>
+      <figcaption>Excelの定型業務がボタン1つで終わる様子を動画でご覧ください</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- PAINS -->
+<section aria-labelledby="pain-h">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">こんなお悩みありませんか</p>
+      <h2 id="pain-h">毎日くり返している、その作業。</h2>
+    </div>
+    <ul class="pains">
+      <li>毎朝、システムから落としたデータを別の表に貼り付け直している</li>
+      <li>前任者が作ったマクロが、ある日突然動かなくなった</li>
+      <li>気づいたら数式が消えていて、集計が合わない</li>
+      <li>人によって入力の仕方がバラバラで、毎回直している</li>
+      <li>運賃表を何枚も見比べて、1件ずつ金額を出している</li>
+      <li>大きなシステムを入れるほどの予算も時間もない</li>
+    </ul>
+    <p class="pains-answer">その作業、<span>いつものExcelのまま</span>自動化できます。</p>
+  </div>
+</section>
+
+<!-- SERVICES -->
+<section aria-labelledby="svc-h" style="padding-top:0">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">できること</p>
+      <h2 id="svc-h">「決まった作業」は、まとめてお任せください。</h2>
+    </div>
+    <div class="services">
+      <article class="svc"><span class="tag">Excel VBA</span><h3>定型業務の自動化</h3><p>転記・集計・並べ替え・CSVの作成や取り込みなど、毎日くり返す処理をボタン1つにまとめます。</p></article>
+      <article class="svc"><span class="tag">Form</span><h3>間違えない<wbr>入力フォーム</h3><p>表のシートには触れさせず、専用の入力画面から入力。選択式や入力チェックで、ミスをその場で防ぎます。</p></article>
+      <article class="svc"><span class="tag">Google</span><h3>スプレッドシート・<wbr>業務アプリ</h3><p>Googleのツールを使い、PCでもスマホでも使える業務アプリを開発します。データはチームで共有できます。</p></article>
+      <article class="svc"><span class="tag">Repair</span><h3>動かないマクロの修復</h3><p>Excelの更新やレイアウト変更で止まったマクロを調べて直します。他社や前任者が作ったものでもご相談ください。</p></article>
+    </div>
+  </div>
+</section>
+
+<!-- WORKS -->
+<section id="works" aria-labelledby="works-h" style="padding-top:0">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">実績</p>
+      <h2 id="works-h">出荷の流れを、最初から最後まで自動化しています。</h2>
+      <p class="lead">自社の物流現場で毎日動いているツール群です。お客様先の業務にも、同じ仕組みを合わせてお作りしています。</p>
+    </div>
+    <ol class="flow">
+      <li><b>実績の転記</b><p>倉庫管理システムの実績を管理表へ。マスタ参照で補完し、金額も計算</p></li>
+      <li><b>ピッキング</b><p>出荷先別リストを集計し、棚番順に並べ替え。備考の色分けや改ページも</p></li>
+      <li><b>送り状作成</b><p>伝票とリストを照合し、運送会社システムの取込CSVを作成。クール便も判定</p></li>
+      <li><b>送り状番号の取込</b><p>発行済みデータと依頼データを照合し、取込用ファイルを作成</p></li>
+      <li><b>明細・運賃</b><p>発送明細を重複なく累積。住所とサイズから運賃を自動で算出</p></li>
+    </ol>
+    <div class="extra">
+      <div><b>チャーター便管理ツール</b><p>発注書・納品書などの帳票を自動作成</p></div>
+      <div><b>データ突合ツール</b><p>2つのデータの差分や不一致をすぐに洗い出し</p></div>
+      <div><b>運賃算出ツール</b><p>複数の運賃表を参照し、サイズと地帯から運賃を計算</p></div>
+      <div><b>ハンディターミナル連携</b><p>入荷データを端末用ファイルに変換し、検品につなげる</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- CASES -->
+<section aria-labelledby="case-h" style="padding-top:0">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">画面でご紹介</p>
+      <h2 id="case-h">使う人を選ばない画面をつくります。</h2>
+    </div>
+
+    <div class="case">
+      <figure>
+        <div class="shot">
+          <img src="images/input_form.png" width="976" height="635" alt="Excel VBAで作った出荷入力フォームの画面">
+          <span class="pin" style="left:30%;top:28%">1</span>
+          <span class="pin" style="left:65%;top:26%">2</span>
+          <span class="pin" style="left:84%;top:60%">3</span>
+          <span class="pin" style="left:75%;top:81%">4</span>
+          <span class="pin" style="left:88%;top:94%">5</span>
+        </div>
+        <figcaption>※取引先・商品などの情報はぼかしています</figcaption>
+      </figure>
+      <div>
+        <span class="label">Excel VBA ／ 入力フォーム</span>
+        <h3>表は触らせない。だから壊れない。</h3>
+        <p>入力は専用フォームから、処理はボタンで。新しく入ったスタッフも、画面の案内どおりに入力するだけです。</p>
+        <ul class="notes">
+          <li><span>1</span><div><b>納品先は一覧から選ぶ</b><small>手入力しないので、表記ゆれや打ち間違いが起きません</small></div></li>
+          <li><span>2</span><div><b>赤字は必須項目</b><small>入れ忘れがあれば、登録前にお知らせします</small></div></li>
+          <li><span>3</span><div><b>商品名と単価は自動表示</b><small>商品を選ぶとマスタから自動で入ります</small></div></li>
+          <li><span>4</span><div><b>運送会社は選択式</b><small>コードの対応表を画面に表示し、迷わせません</small></div></li>
+          <li><span>5</span><div><b>転記して次の品番へ</b><small>同じ納品先への連続入力も手早く進みます</small></div></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="case">
+      <figure>
+        <div class="shot">
+          <img src="images/charter_app.png" width="1194" height="763" alt="Googleのアプリで作ったチャーター便手配の一覧と入力画面">
+          <span class="pin" style="left:17%;top:52%">1</span>
+          <span class="pin" style="left:40%;top:6%">2</span>
+          <span class="pin" style="left:88%;top:14%">3</span>
+          <span class="pin" style="left:70%;top:31%">4</span>
+        </div>
+        <figcaption>※取引先名などの情報はぼかしています</figcaption>
+      </figure>
+      <div>
+        <span class="label">Googleアプリ ／ チャーター便手配</span>
+        <h3>Excelの外でも。スマホで使える業務アプリ。</h3>
+        <p>チャーター便の手配から一覧管理、帳票の作成までを1つのアプリにまとめました。事務所でも現場でも、同じ情報を見られます。</p>
+        <ul class="notes">
+          <li><span>1</span><div><b>手配状況を一覧で共有</b><small>電話やFAXでの確認を減らせます</small></div></li>
+          <li><span>2</span><div><b>なんでも検索</b><small>過去の手配もすぐに見つかります</small></div></li>
+          <li><span>3</span><div><b>ステップ式の入力</b><small>基本情報、運送情報と順番に入力するので迷いません</small></div></li>
+          <li><span>4</span><div><b>必須項目に＊マーク</b><small>入れ忘れを防ぎます</small></div></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FUNCTION -->
+<section class="fn" aria-labelledby="fn-h" style="padding-top:0">
+  <div class="wrap">
+    <div>
+      <div class="sec-head">
+        <p class="eyebrow">自作関数</p>
+        <h2 id="fn-h">ツールはまだ早い、という方へ。<br>まずは関数1つから。</h2>
+        <p class="lead">SUMやVLOOKUPと同じように、セルに入力するだけで使える「自作関数」もお作りします。ボタンも画面も増やさず、今の表にそのまま組み込めます。</p>
+      </div>
+      <h3>例：運賃を自動で出す関数</h3>
+      <ol class="how">
+        <li><div>住所から都道府県を読み取る<small>空白や改行が混じっていても読み取ります</small></div></li>
+        <li><div>都道府県から地帯を判定する<small>都道府県と地帯の対応表を参照します</small></div></li>
+        <li><div>サイズと地帯で運賃表を引く<small>契約ごとの運賃表を、引数で切り替えられます</small></div></li>
+      </ol>
+      <p class="fn-note" style="font-size:.9rem;margin-top:16px">計算できないときは「#都道府県不明」「#サイズ不一致」のように理由を表示するので、どこを直せばよいかがすぐ分かります。</p>
+    </div>
+    <div>
+      <figure style="margin:0">
+        <div class="shot"><img src="images/calc_unchin.png" width="435" height="162" alt="セルに =Calc運賃(B3,C3,&quot;佐川請求&quot;) と入力し、住所とサイズから運賃を出しているExcelの画面" style="width:100%"></div>
+        <figcaption class="fn-note">実際の画面です。住所とサイズを指定し、3つ目の引数で使う運賃表（契約）を選びます。</figcaption>
+      </figure>
+      <div class="plans">
+        <div class="plan"><h3>運賃表は自社で登録</h3><span class="price">1万円<small>（税別）</small></span><p>関数と運賃表の入力シートをお渡しします。運賃はお客様ご自身で入力していただきます。運賃表は5パターン程度まで対応します。</p></div>
+        <div class="plan"><h3>運賃表の登録もお任せ</h3><span class="price">2万円<small>（税別）</small></span><p>お手持ちの運賃表を、弊社でマスタに登録してお渡しします。運賃表は5パターン程度まで対応します。</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SMALL START -->
+<section class="small" aria-labelledby="small-h">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">小さく始める</p>
+      <h2 id="small-h">大きなシステムは、まだいらない。<small>いつものExcelで、まず1つの業務から始めませんか。</small></h2>
+    </div>
+    <div class="points">
+      <div class="point"><span class="big">今ある道具で</span><h3>すぐに使える</h3><p>新しいシステムではなく、御社ですでに使っているExcelやGoogleのツールに合わせてお作りします。使い慣れた画面のまま、作業だけが楽になります。</p></div>
+      <div class="point"><span class="big">社外に出さない</span><h3>データは社内のPCで</h3><p>Excelのツールは社内のPCの中だけで動きます。外部のサーバーにデータを送らないため、情報システム部門との調整も最小限で済みます。</p></div>
+      <div class="point"><span class="big">数千円から</span><h3>課の決裁で導入</h3><p>このページで紹介している規模のツールなら、費用の目安は数千円〜数万円です（内容によりお見積り）。大がかりな稟議を通さず、「まず1つ試してみる」ことができます。</p></div>
+      <div class="point"><span class="big">研修まで</span><h3>使いこなせるように</h3><p>法人向けVBA研修の実績があります。操作説明はもちろん、社内で修正できる人材の育成までお手伝いします。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- REASONS -->
+<section aria-labelledby="why-h">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">選ばれる理由</p>
+      <h2 id="why-h">現場を知っているから、止まらない仕組みになる。</h2>
+    </div>
+    <div class="reasons">
+      <div><span class="mk">現場</span><h3>物流現場で磨いたノウハウ</h3><p>自社の物流部門で毎日使っているツールです。現場の困りごとを知っている者が作ります。</p></div>
+      <div><span class="mk">安全</span><h3>消えない・壊れない設計</h3><p>処理の前にバックアップを自動で作成し、二重登録は自動でスキップします。</p></div>
+      <div><span class="mk">確認</span><h3>人の確認が必要なところは止まる</h3><p>全部を機械任せにせず、判断が必要な注文だけを確認画面に出します。</p></div>
+      <div><span class="mk">CSV</span><h3>文字化けや桁落ちを防ぐ</h3><p>CSVをExcelで開かずに直接読み込むので、伝票番号が「1.2E+11」になるといった事故が起きません。</p></div>
+      <div><span class="mk">継続</span><h3>担当者が替わっても使える</h3><p>保存先などの設定は画面から変更でき、32bit・64bitどちらのExcelでも動きます。</p></div>
+      <div><span class="mk">資格</span><h3>VBAエキスパートが対応</h3><p>Microsoft Excel VBAエキスパートの資格を持つメンバーが複数在籍しています。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- STEPS -->
+<section aria-labelledby="flow-h" style="padding-top:0">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">ご依頼の流れ</p>
+      <h2 id="flow-h">まずは、困っている作業を1つ教えてください。</h2>
+    </div>
+    <ol class="steps">
+      <li><h3>ヒアリング</h3><p>今の作業の手順、お使いのファイルやパソコンの環境、ご利用の目的を伺います。</p></li>
+      <li><h3>お見積り</h3><p>自動化する範囲と費用、納期をご提案します。</p></li>
+      <li><h3>開発</h3><p>伺った環境と目的に合わせてお作りします。</p></li>
+      <li><h3>動作確認（検収）</h3><p>まず期限付きのツールをお送りします。実際の業務で動作をご確認ください。</p></li>
+      <li><h3>納品</h3><p>検収後、期限なしで使えるツールをお送りします。コードも開示します。</p></li>
+    </ol>
+    <div class="disclaimer"><b>ご注意</b>ツールは、ヒアリングでお伺いした使用環境とご利用目的をふまえて開発いたします。ただし、ツールの使用により生じた損害（データの消失、業務の停止、逸失利益などを含みます）について、弊社は責任を負いかねます。なお、弊社の故意または重大な過失による場合はこの限りではありません。</div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section aria-labelledby="faq-h" style="padding-top:0">
+  <div class="wrap">
+    <div class="sec-head">
+      <p class="eyebrow">よくあるご質問</p>
+      <h2 id="faq-h">よくあるご質問</h2>
+    </div>
+    <div class="faq">
+      <details><summary>費用はどのくらいかかりますか？</summary><p>このページで紹介している規模のツールで、数千円〜数万円が目安です。自動化する範囲によって変わりますので、内容をお聞きしたうえでお見積りします。</p></details>
+      <details><summary>コードは開示してもらえますか？</summary><p>はい、もちろんです。コードを開示した状態で納品します。社内での修正や引き継ぎにもお使いいただけます。</p></details>
+      <details><summary>支払いの前に動作を確かめられますか？</summary><p>はい。完成後、まず期限付きのツールをお送りします。実際の業務で動作をご確認いただき、検収後に期限なしで使えるツールをお送りします。</p></details>
+      <details><summary>今使っているExcelファイルをそのまま使えますか？</summary><p>はい。今お使いのファイルや帳票の形に合わせてお作りすることを基本にしています。</p></details>
+      <details><summary>他社や前任者が作ったマクロでも直してもらえますか？</summary><p>はい。中身を確認したうえで、原因を調べて修復します。</p></details>
+      <details><summary>納品後、社内で修正できるようになりますか？</summary><p>操作説明に加えて、ご希望に応じてVBAの研修も行います。法人向け研修の実績があります。</p></details>
+      <details><summary>物流以外の業務でも頼めますか？</summary><p>はい。データの加工や集計、帳票の作成など、毎日決まった手順でくり返す作業であれば業種を問わずご相談ください。</p></details>
+    </div>
+  </div>
+</section>
+
+<!-- CTA -->
+<section class="cta" id="contact" aria-labelledby="cta-h">
+  <div class="wrap">
+    <div>
+      <p class="eyebrow">お問い合わせ</p>
+      <h2 id="cta-h">毎日いちばん面倒な作業を、<br>1つ教えてください。</h2>
+      <p>「こんなことも自動化できる？」という段階のご相談で大丈夫です。</p>
+    </div>
+    <div class="contact">
+      <a class="btn btn-primary" href="https://www.j-kowa.co.jp/contact/?contactType=3">お問い合わせフォームへ</a>
+      <div>
+        <small>お電話（TPS部 直通）</small>
+        <span class="tel">048-928-1008</span>
+      </div>
+      <small>コーワ株式会社 トータルパッケージソリューション部（TPS部）<br>〒340-0832 埼玉県八潮市柳之宮45番地</small>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <span>© コーワ株式会社 トータルパッケージソリューション部</span>
+    <a href="https://www.j-kowa.co.jp/tps/">TPS部のページへ戻る</a>
+  </div>
+</footer>
+
+</body>
+</html>
